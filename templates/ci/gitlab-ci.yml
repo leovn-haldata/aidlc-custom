@@ -1,0 +1,106 @@
+# AIDLC CI/CD Pipeline -- GitLab CI
+# Copy to: .gitlab-ci.yml
+# Customize: Replace <placeholders> with your project's commands
+#
+# Maps to AIDLC gates:
+#   /aidlc-review (TDD Expert)     → test stage (coverage)
+#   /aidlc-review (Code Reviewer)  → validate stage (lint + type)
+#   /aidlc-review (Security)       → security stage
+#   /aidlc-build verification      → build stage
+#   /aidlc-deploy                  → deploy stage
+
+stages:
+  - validate
+  - test
+  - security
+  - build
+  - deploy
+
+# -- VALIDATE STAGE --
+
+lint:
+  stage: validate
+  script:
+    - echo "<lint command: npm run lint | ruff check .>"
+  # rules:
+  #   - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+type-check:
+  stage: validate
+  script:
+    - echo "<type check: npx tsc --noEmit | mypy src/>"
+
+# -- TEST STAGE --
+
+test:
+  stage: test
+  script:
+    - echo "<install command>"
+    - echo "<test command: npm run test:coverage | pytest --cov>"
+  coverage: '/(?:TOTAL|overall).*?(\d+(?:\.\d+)?)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+# -- SECURITY STAGE --
+
+secret-scan:
+  stage: security
+  script:
+    - echo "<secret scan command: trufflehog git file://. --only-verified>"
+  allow_failure: false
+
+dependency-audit:
+  stage: security
+  script:
+    - echo "<audit command: npm audit --production | pip-audit | trivy fs .>"
+  allow_failure: false
+
+# -- BUILD STAGE --
+
+build:
+  stage: build
+  script:
+    - echo "<build command: npm run build | docker build .>"
+  # artifacts:
+  #   paths:
+  #     - dist/
+  #     - build/
+
+# -- DEPLOY STAGE --
+# Matches AIDLC deploy flow: develop → staging → production
+
+deploy-dev:
+  stage: deploy
+  script:
+    - echo "<deploy to dev command>"
+  only:
+    - develop
+  environment:
+    name: development
+    # url: https://dev.example.com
+
+deploy-staging:
+  stage: deploy
+  script:
+    - echo "<deploy to staging command>"
+  only:
+    - /^pre-release\/.*/
+  environment:
+    name: staging
+    # url: https://staging.example.com
+  when: manual
+
+deploy-production:
+  stage: deploy
+  script:
+    - echo "<deploy to production command>"
+  only:
+    - master
+    - main
+  environment:
+    name: production
+    # url: https://example.com
+  when: manual

@@ -1,0 +1,42 @@
+# AIDLC Changes Directory .gitignore
+# Place this file at: aidlc-docs/changes/.gitignore
+#
+# Prevents committing artifacts that should NOT be in Git.
+# See rules/08-spec-compliance.md "What should NOT be committed" for rationale.
+
+# Raw AI output (long, not reproducible)
+**/ai-drafts/
+**/ai-output/
+**/raw-ai/
+
+# Debug and temporary files
+**/debug.md
+**/debug-*.md
+**/notes-draft.md
+**/*.tmp
+**/*.bak
+
+# Multiple draft versions (Git history handles this)
+**/drafts/
+
+# Intermediate screenshots and binary artifacts
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.mp4
+
+# Detailed test reports in HTML format (use CI artifacts)
+**/test-report*.html
+**/coverage-report/
+
+# Editor and OS artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Prompt iteration logs (keep only prompts.md at root)
+**/prompt-log.md
+**/prompt-history.md

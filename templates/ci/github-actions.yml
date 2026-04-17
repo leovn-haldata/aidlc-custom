@@ -1,0 +1,114 @@
+# AIDLC CI Pipeline -- GitHub Actions
+# Copy to: .github/workflows/aidlc-ci.yml
+# Customize: Replace <placeholders> with your project's commands
+#
+# Maps to AIDLC gates:
+#   /aidlc-review (TDD Expert)     → test job (coverage check)
+#   /aidlc-review (Code Reviewer)  → lint-and-type job
+#   /aidlc-review (Security)       → security job
+#   /aidlc-build verification      → build job
+
+name: AIDLC CI Pipeline
+
+on:
+  pull_request:
+    branches: [develop, main, master]
+  push:
+    branches: [develop]
+
+jobs:
+  lint-and-type:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup runtime
+        # Uncomment the appropriate section:
+        # uses: actions/setup-node@v4
+        # with:
+        #   node-version: '20'
+        # uses: actions/setup-python@v5
+        # with:
+        #   python-version: '3.12'
+        run: echo "Configure your runtime setup here"
+
+      - name: Install dependencies
+        run: echo "<install command: npm ci | pip install -r requirements.txt>"
+
+      - name: Lint
+        run: echo "<lint command: npm run lint | ruff check .>"
+
+      - name: Type check
+        run: echo "<type check: npx tsc --noEmit | mypy src/>"
+
+  test:
+    name: Tests & Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup runtime
+        run: echo "Configure your runtime setup here"
+
+      - name: Install dependencies
+        run: echo "<install command>"
+
+      - name: Run tests with coverage
+        run: echo "<test command: npm run test:coverage | pytest --cov --cov-report=xml>"
+
+      - name: Check coverage threshold
+        run: |
+          echo "Verify coverage >= 80%"
+          echo "<coverage check command>"
+          # Example for pytest:
+          # python -c "import xml.etree.ElementTree as ET; t=ET.parse('coverage.xml'); r=t.getroot(); rate=float(r.get('line-rate',0))*100; print(f'Coverage: {rate:.1f}%'); exit(0 if rate>=80 else 1)"
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+      - name: Dependency audit
+        run: echo "<audit command: npm audit --production | pip-audit | trivy fs .>"
+
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: [lint-and-type, test, security]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup runtime
+        run: echo "Configure your runtime setup here"
+
+      - name: Install dependencies
+        run: echo "<install command>"
+
+      - name: Build
+        run: echo "<build command: npm run build | docker build .>"
+
+  # Optional: validate spec artifacts exist for non-micro PRs
+  spec-check:
+    name: Spec Artifact Check
+    runs-on: ubuntu-latest
+    if: "!startsWith(github.head_ref, 'fix/')"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check spec artifacts
+        run: |
+          CHANGE_ID=$(echo "${{ github.head_ref }}" | sed 's|.*/||')
+          SPEC_DIR="aidlc-docs/changes/active/${CHANGE_ID}"
+          if [ ! -d "$SPEC_DIR" ]; then
+            echo "::warning::No spec directory found at $SPEC_DIR"
+            echo "For light-spec and above, spec artifacts should exist."
+          else
+            echo "Spec directory found: $SPEC_DIR"
+            ls -la "$SPEC_DIR"
+          fi

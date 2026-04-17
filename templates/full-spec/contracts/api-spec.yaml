@@ -1,0 +1,56 @@
+# OpenAPI 3.0 Specification Template
+# Change: <change-id>
+
+openapi: "3.0.3"
+info:
+  title: "<change-id> API"
+  version: "1.0.0"
+  description: "API specification for <change-id>"
+
+paths:
+  /example:
+    get:
+      summary: "Example endpoint"
+      operationId: getExample
+      tags:
+        - example
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Successful response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExampleResponse"
+        "400":
+          description: "Bad request"
+        "401":
+          description: "Unauthorized"
+        "404":
+          description: "Not found"
+
+components:
+  schemas:
+    ExampleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        data:
+          type: object
+      required:
+        - id
+        - data
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
