@@ -1,27 +1,38 @@
 ---
 description: >
-  Post-implementation PR review. Runs TDD Expert, Code Reviewer, and Security Reviewer
-  in parallel. Produces a consolidated review report. Maps to "Review PR & Decision"
-  in the team workflow. Applies to all spec modes; micro mode runs a lightweight quick review.
+  Tech Lead's PR review command. Runs TDD Expert, Code Reviewer, and Security Reviewer
+  in parallel on an existing PR. Produces a consolidated review report with per-issue decisions.
+  Maps to "Review PR & Decision" (Step ⑥) in the 3-Lane Workflow.
+  Prerequisite: PR must exist (created by /aidlc-build).
 ---
 
-You are the **Review Agent**, orchestrating three expert roles in parallel to review the implementation.
+You are the **Review Agent**, acting on behalf of the **Tech Lead**. You orchestrate three expert roles in parallel to review the PR.
 
-Review the PR / implementation for the following change:
+This command is the **Tech Lead's official review gate**. The Developer's self-check happens in Step 6 of `/aidlc-build` (lint, tests, build, security scan) — not here.
+
+Prerequisite: PR must exist (created by `/aidlc-build`).
+
+Review the PR for the following change:
 **「$ARGUMENTS」**
 
 ---
 
 ## Step 1: Load Context
 
-1. Read `aidlc-docs/changes/active/<change-id>/build-summary.md` for build results.
-2. Read the spec artifacts (design.md, test-plan.md, acceptance.md) for review criteria.
-3. Identify changed files by reading `tasks.md` (completed tasks list file paths).
-4. If available, read the `git diff` or PR diff for the change.
+1. Read `aidlc-docs/changes/active/<change-id>/build-summary.md` for build results and **PR link**.
+2. If PR link exists, read the PR diff (`gh pr diff <number>` or `git diff develop...HEAD`).
+3. Read the spec artifacts (design.md, test-plan.md, acceptance.md) for review criteria.
+4. Identify changed files by reading `tasks.md` (completed tasks list file paths).
+5. If no PR exists, inform user: "No PR found. Developer should run `/aidlc-build` first to create the PR."
 
 ---
 
 ## Step 2: Run 3 Expert Reviews in Parallel
+
+**IMPORTANT: Complete ALL three reviews fully before presenting anything to the user.
+Do NOT stop mid-review to ask about individual findings.
+Do NOT offer to fix issues during the review phase.
+Collect ALL findings first → consolidate → present the full report → THEN ask for decision.**
 
 Execute the following three reviews concurrently:
 
@@ -85,6 +96,9 @@ Classify findings by severity:
 
 ## Step 3: Consolidate Review Report
 
+**IMPORTANT: Do NOT present partial results. Wait until ALL 3 experts have finished,
+then write the COMPLETE report before moving to Step 4.**
+
 Merge all three expert reports into `aidlc-docs/changes/active/<change-id>/review-report.md`:
 
 ```markdown
@@ -130,22 +144,82 @@ Tech Lead decides based on findings:
 
 ---
 
-## Step 4: Present & Wait for Decision
+## Step 4: Present Full Report
 
-1. Present the review report to the user (Tech Lead).
-2. **Wait for decision:**
-   - **Accept**: "Review passed. Merge to develop. Run `/aidlc-release <change-id>` when ready for staging/production."
-   - **Request Fixes**: List CRITICAL issues. Developer fixes and re-runs `/aidlc-review`.
-   - **Postpone**: Note reason, keep spec package for later.
-   - **Reject**: Archive with rejection reason.
+**CRITICAL: Present the COMPLETE review report FIRST. Do NOT stop mid-review to ask about individual findings.**
+
+1. Present the full review report (Summary + all 3 expert findings).
+
+2. After the full report, present ALL findings in a numbered list with each issue's recommendation:
+
+```
+Issues found:
+
+CRITICAL (must fix before merge):
+  C-1: [Code] completeSection() called in render body → wrap in useEffect
+       File: AttributeCharts.tsx:42
+  C-2: [Security] API endpoint missing auth middleware
+       File: api/export.py:15
+
+WARNING (should fix):
+  W-1: [Code] Function exportData() is 85 lines → split into smaller functions
+       File: api/export.py:30
+
+SUGGESTION (nice to have):
+  S-1: [TDD] Add test for concurrent reset password requests
+```
+
+---
+
+## Step 5: Per-Issue Decision
+
+**Ask the user to decide on EACH issue individually.** Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` — one question per issue, with these options:
+- **Fix**: Agree with finding, fix as recommended
+- **Fix differently**: Agree it's an issue, but propose a different approach (user explains)
+- **Dismiss**: Not a real issue / acceptable risk (user explains reason)
+- **Defer**: Valid issue but fix in a future task, not now
+
+If the user selects **Fix differently** or **Dismiss**, ask for their explanation before proceeding.
+
+---
+
+## Step 6: Execute & Final Decision
+
+1. **Apply fixes** for all issues marked "Fix" or "Fix differently" (using user's approach).
+2. **Log dismissed issues** in review-report.md with the user's reason.
+3. **Log deferred issues** as TODOs for future tasks.
+
+4. After fixes are applied, present a summary:
+
+```
+Fixed:    C-1 (as recommended), W-1 (as recommended)
+Deferred: S-1 (→ future task)
+Dismissed: C-2 (user reason: "auth handled by API gateway, not middleware")
+```
+
+5. Ask for the **final PR decision** using the platform confirmation mechanism defined in `rules/09-platform-confirmation.md`:
+   - **Accept → Merge**: All critical issues resolved. Merge to develop.
+   - **Re-review**: Run `/aidlc-review` again to verify fixes.
+   - **Postpone**: Return to PM for rescheduling.
+   - **Reject**: Fundamental flaw, return to `/aidlc-spec` or `/aidlc-plan`.
+
+6. Based on decision:
+   - **Accept**: "Review passed. PR is approved. Run `/aidlc-release <change-id>` to merge & release."
+   - **Re-review**: Apply fixes, then re-run the full review on the updated code.
+   - **Postpone**: Note reason in review-report.md, keep PR open.
+   - **Reject**: Close PR with rejection reason, archive spec package.
 
 ---
 
 ## Rules
 
 - All 3 expert reviews run in parallel for efficiency.
-- CRITICAL findings from ANY expert block the merge.
+- **Complete ALL reviews before presenting to user. Never stop mid-review to ask questions.**
+- **Present the full report first, then ask per-issue decisions. Never offer to fix issues during review.**
+- CRITICAL findings from ANY expert block the merge (unless user explicitly dismisses with reason).
+- If user dismisses a CRITICAL finding, log the reason prominently in review-report.md.
 - Do NOT auto-pass. Even if everything looks clean, present the report and wait for human decision.
 - The review report becomes a permanent artifact in the spec package.
-- For light-spec with clean findings, the report can be abbreviated.
+- For light-spec with clean findings, the report can be abbreviated (skip per-issue if 0 CRITICAL + 0 WARNING).
 - If the review reveals a spec flaw (not just code), recommend going back to `/aidlc-confirm` with updated spec.
+- Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` for all decision prompts.

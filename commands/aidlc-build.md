@@ -26,7 +26,7 @@ Implement the following change:
    - List each task from `tasks.md` with checkboxes
    - For each task: files to create/modify, test to write first, definition of done
    - Identify tasks that can run in parallel `[P]`
-   - **Wait for user approval before coding.**
+   - Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user approval before coding.
 
 ---
 
@@ -125,11 +125,61 @@ After implementing all tasks:
 
 ---
 
-## Step 6: Handoff
+## Step 6: Pre-PR Self-Check
 
-1. Present the build summary to the user.
-2. Inform the user of the next step:
-   - "Build complete. Run `/aidlc-review <change-id>` to start PR review (TDD + code review + security)."
+Before creating a PR, run an automated self-check to catch obvious issues:
+
+1. **Lint**: 0 errors on changed files
+2. **Tests**: All pass, coverage ≥ 80%
+3. **Build**: Compiles without errors
+4. **Security scan (quick)**: No hardcoded secrets, no `console.log` with sensitive data
+5. **Coding style**: Functions < 50 lines, files < 800 lines, no deep nesting
+
+If any check fails → **auto-fix** without asking (these are mechanical fixes).
+If auto-fix not possible → note in build-summary.md and proceed (TL will catch in review).
+
+---
+
+## Step 7: Create PR
+
+1. **Commit** all changes (if not already committed per-task):
+   ```
+   aidlc(<change-id>): build complete -- ready for review
+   ```
+
+2. **Check for conflicts** against the base branch before creating the PR:
+   ```
+   git fetch origin
+   git merge origin/develop --no-commit --no-ff
+   ```
+   - If **no conflicts**: run `git merge --abort` to restore a clean state, then proceed to step 3.
+   - If **conflicts exist**: resolve them before creating the PR.
+
+   ### Resolving conflicts
+   - **Syntactic conflicts** (unrelated lines, formatting): resolve automatically, then run `/aidlc-fix` if the build breaks.
+   - **Semantic conflicts** (same logic changed by two developers): **STOP — do not guess intent**. Present the conflicting sections to the user and wait for a decision. Once resolved, re-run the full test suite to check for regressions.
+   - If the conflict reveals a scope change (the merged code contradicts the current spec): run `git merge --abort`, then run `/aidlc-modify` to update the spec first, then re-attempt the merge with clear intent from the updated spec.
+
+3. **Create PR** using `gh pr create` or equivalent:
+   - **Title**: `aidlc(<change-id>): <short description from proposal.md>`
+   - **Body**: Include the build summary (tasks completed, test coverage, build status)
+   - **Base branch**: `develop` (or project's default integration branch)
+   - **Labels**: spec mode label (e.g., `light-spec`, `feature-spec`)
+
+4. **Link PR** in `aidlc-docs/changes/active/<change-id>/build-summary.md`:
+   ```
+   ## PR
+   - **URL**: <PR link>
+   - **Branch**: feature/<change-id>
+   ```
+
+---
+
+## Step 8: Handoff to Tech Lead
+
+1. Present the build summary + PR link to the user.
+2. Inform the next step:
+   - "PR created. Tech Lead runs `/aidlc-review <change-id>` to start the review."
 
 ---
 

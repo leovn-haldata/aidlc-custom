@@ -29,7 +29,7 @@ Set up monitoring for:
    - [ ] Create operational dashboards
    - [ ] Write incident runbooks
 
-3. **Wait for user approval.**
+3. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user approval before proceeding.
 
 ---
 

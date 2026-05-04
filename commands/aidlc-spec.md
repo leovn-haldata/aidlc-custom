@@ -25,7 +25,7 @@ Generate spec artifacts for the following change:
 Create a spec generation plan at `aidlc-docs/changes/active/<change-id>/spec-plan.md`:
 - List each artifact to be generated with checkboxes
 - Note any dependencies or open questions
-- **Wait for user approval before generating artifacts.**
+- Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` before generating artifacts.
 
 ---
 

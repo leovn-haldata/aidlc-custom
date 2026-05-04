@@ -30,7 +30,7 @@ Deploy the following change:
    - [ ] Deploy to target environment
    - [ ] Post-deploy validation (health check, smoke test)
 
-5. **Wait for user approval.**
+5. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user approval before proceeding.
 
 ---
 
@@ -41,7 +41,7 @@ Deploy the following change:
    - Environment variables are set (not hardcoded)
    - Secrets are available in the target environment's vault/config
    - Network/security group settings are correct
-3. Present findings to user. **Wait for confirmation before proceeding.**
+3. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to present findings and get confirmation before proceeding.
 
 ---
 
@@ -56,7 +56,7 @@ If infrastructure changes are needed:
    - Docker Compose: `deployment/<unit>/docker-compose.yml`
    - Kubernetes: `deployment/<unit>/k8s/`
 3. Generate or update OpenAPI specification if API contracts changed.
-4. **Wait for user to review IaC changes before applying.**
+4. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` and wait for user to review IaC changes before applying.
 
 ---
 

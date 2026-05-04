@@ -15,8 +15,9 @@ Receive the following requirement and process it through the intake workflow:
 
 ## Step 1: Analyze the Raw Input
 
-1. Read the provided requirement (meeting notes, ticket, raw description, or conversation).
-2. Identify and extract:
+1. If `$ARGUMENTS` references a file (e.g. `@path/to/file.md`), read that file first before proceeding.
+2. Read the provided requirement (meeting notes, ticket, raw description, or conversation).
+3. Identify and extract:
    - **Business goal**: What problem is being solved?
    - **Actors**: Who are the users / stakeholders?
    - **Scope**: What is included?
@@ -44,15 +45,11 @@ Evaluate the requirement against the decision matrix (see `rules/02-spec-modes.m
 
 **If ANY criterion falls into a higher mode, recommend that higher mode.**
 
-Present your recommendation to the user:
-```
-Recommended mode: [micro / light-spec / feature-spec / full-spec]
-Rationale: [brief explanation]
-```
+Present your recommendation, then use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to confirm. The confirmation should present:
+- Recommended mode and rationale
+- Options: agree with recommendation / override to micro / override to light-spec / override to feature-spec / override to full-spec / need more info before deciding
 
-If **micro** is recommended, inform user: "This task is trivial. No spec artifacts needed. Just fix, test, and commit with a descriptive message. If you'd like more structure, override to light-spec."
-
-**Wait for user to confirm or override the mode before proceeding.**
+If **micro** is selected or recommended, inform user: "This task is trivial. No spec artifacts needed. Just fix, test, and commit with a descriptive message."
 
 ---
 
@@ -113,8 +110,11 @@ Create `aidlc-docs/changes/active/<change-id>/intake-note.md` with the following
 ## Step 4: Confirm & Handoff
 
 1. Present the intake note to the user for review.
-2. **Wait for user approval.**
-3. Once approved, inform the user of the next step:
+2. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md`. The confirmation should offer options to approve or cancel.
+
+   **Handling user corrections inline**: If the user bypasses the confirmation mechanism and types corrections/feedback directly as a chat message, treat that as a revision request. Update the intake note based on their feedback, then present the updated note and ask for confirmation again (loop back to step 4.2). This keeps the conversation in the same thread without interruption.
+
+3. If **approve**, inform the user of the next step:
    - **micro**: "Task is trivial. Just fix, test, and commit. No further AIDLC steps needed."
    - **light-spec / feature-spec / full-spec**: "Intake complete. Run `/aidlc-spec <change-id>` to generate spec artifacts in **<mode>** mode."
 

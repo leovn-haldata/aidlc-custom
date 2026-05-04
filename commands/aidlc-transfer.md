@@ -162,7 +162,7 @@ Create `aidlc-docs/plans/transfer-checklist.md`:
 - [ ] Warranty period start date confirmed
 ```
 
-**Present the checklist and wait for user to customize it before proceeding.**
+Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to present the checklist and wait for user to customize it before proceeding.
 
 ---
 

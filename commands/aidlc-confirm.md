@@ -103,7 +103,7 @@ Format the report as:
 
 ## Step 4: Wait for Human Decision
 
-Present the report and **STOP. Wait for the user's decision:**
+Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md`. Present the report and **STOP. Wait for the user's decision:**
 
 - **CONFIRM**: Inform user of next step:
   - light-spec: "Run `/aidlc-build <change-id>` to start implementation."

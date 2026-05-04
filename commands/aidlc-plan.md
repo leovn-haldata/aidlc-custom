@@ -57,7 +57,7 @@ Report gaps to the user.
 
 1. Present the plan to the user.
 2. Highlight key architecture decisions for discussion.
-3. **Wait for user confirmation** before proceeding.
+3. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md`.
 4. Once confirmed: "Plan confirmed. Run `/aidlc-tasks <change-id>` to generate task breakdown."
 
 ---

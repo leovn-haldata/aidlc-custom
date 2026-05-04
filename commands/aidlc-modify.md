@@ -83,7 +83,7 @@ _What prompted this modification?_
 ## Step 4: Present & Confirm
 
 1. Present the impact analysis and modification plan.
-2. **Wait for user confirmation** before making any changes.
+2. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user confirmation before making any changes.
 3. Once confirmed, execute the update order from the plan.
 4. After completion, recommend re-running `/aidlc-review` on affected areas.
 

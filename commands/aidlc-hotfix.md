@@ -169,7 +169,7 @@ hotfix/<issue-id> → master (production deploy)
 - [ ] Update runbook: `aidlc-docs/operations/runbooks/`
 ```
 
-Present PIR to user and **wait for approval**.
+Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to present the PIR and wait for user approval.
 
 ---
 

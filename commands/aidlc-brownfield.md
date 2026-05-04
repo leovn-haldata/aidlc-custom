@@ -18,7 +18,7 @@ Analyze the following codebase:
 Create a plan at `aidlc-docs/plans/brownfield_plan.md`:
 - List directories/modules to analyze
 - Identify key use cases to model dynamically
-- **Wait for user approval.**
+- Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user approval before proceeding.
 
 ---
 

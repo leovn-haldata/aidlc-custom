@@ -49,7 +49,7 @@ How does your team distribute the AIDLC Custom framework?
   - Full setup: copy all Tier 1 + selected Tier 2 + selected skills into project
   - This is the default behavior (Steps 1-7 below)
 
-**STOP. Wait for user to select before proceeding.**
+Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user selection before proceeding.
 
 ---
 
@@ -78,7 +78,7 @@ For each folder selected, a `rules/` subdirectory will be created
 where you can add tech-stack-specific coding rules.
 ```
 
-**STOP. Wait for user to specify their folders before proceeding.**
+Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user's folder selection before proceeding.
 
 ---
 
@@ -111,7 +111,7 @@ Install AI agent skills? (enhances agent behavior for specific workflows)
   [ ] aidlc-shrink-archive  -- Shrink & archive specs (for /aidlc-release)
 ```
 
-**STOP. Wait for user to confirm before proceeding.**
+Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user confirmation before proceeding.
 
 ---
 
@@ -150,7 +150,7 @@ Based on user's selections, create a setup plan at `aidlc-docs/plans/setup_plan.
 
 List each file to be created. Note any existing files that will be skipped (never overwrite).
 
-**Wait for user approval.**
+Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user approval before proceeding.
 
 ---
 

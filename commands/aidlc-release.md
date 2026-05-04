@@ -10,6 +10,15 @@ You are the **Release Agent** (Role: DevOps Engineer / Release Manager).
 Prepare the release for:
 **「$ARGUMENTS」**
 
+## Flags
+
+| Flag | Effect |
+|------|--------|
+| *(none)* | Standard flow — agent merges PR and executes rollout |
+| `--manual` | Code was already deployed manually. Skip Step 2 (Merge PR) and Step 4 (Rollout). Mark release note as **Manual Deploy**. |
+
+Parse `$ARGUMENTS` to extract the change ID and detect `--manual` before proceeding.
+
 ---
 
 ## Step 1: Pre-Release Verification
@@ -20,7 +29,24 @@ Prepare the release for:
 
 ---
 
-## Step 2: Generate Release Note (Mode-Dependent)
+## Step 2: Merge PR
+
+> **Skip this step entirely if `--manual` flag is set.**
+
+1. Read `aidlc-docs/changes/active/<change-id>/build-summary.md` for the PR link.
+2. Check if the PR is already merged (`gh pr view <number> --json state`):
+   - **Already merged**: skip to step 4.
+   - **Open**: proceed to merge.
+3. If PR is open and review is PASS:
+   - If `/aidlc-modify` was run after the PR was created, verify the branch has been pushed with the latest changes (`git push`) before merging.
+   - Merge the PR to `develop` branch (`gh pr merge <number> --squash` or as configured).
+   - If merge conflicts exist, inform user and STOP.
+4. If no PR link found, ask user: "Was the code merged manually? If yes, proceed. If not, run `/aidlc-build` first."
+5. Verify merge succeeded before proceeding.
+
+---
+
+## Step 3: Generate Release Note (Mode-Dependent)
 
 ### light-spec
 
@@ -50,17 +76,19 @@ Create `aidlc-docs/changes/active/<change-id>/release-note.md` with all of the a
 
 ---
 
-## Step 3: Execute Rollout (full-spec only)
+## Step 4: Execute Rollout (full-spec only)
+
+> **Skip this step entirely if `--manual` flag is set** — rollout was handled manually.
 
 For full-spec changes with a `rollout-plan.md`:
 1. Present the rollout plan phases to the user.
-2. **Wait for approval to proceed with each phase.**
+2. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get approval before proceeding with each phase.
 3. After each phase, verify the success gate is met before proceeding.
 4. If any phase fails: execute rollback procedure and report.
 
 ---
 
-## Step 4: Shrink Spec Package
+## Step 5: Shrink Spec Package
 
 Before archiving, **shrink** the change directory to keep only essential knowledge.
 
@@ -115,6 +143,7 @@ Before archiving, **shrink** the change directory to keep only essential knowled
 - **Created**: YYYY-MM-DD
 - **Released**: YYYY-MM-DD
 - **Spec Mode**: <mode>
+- **Deploy**: Automated / Manual
 ```
 
 ### Generate links.md
@@ -131,7 +160,7 @@ Before archiving, **shrink** the change directory to keep only essential knowled
 
 ---
 
-## Step 5: Move to Released Tier
+## Step 6: Move to Released Tier
 
 Determine the current quarter (e.g., `2026-Q2`), then move:
 
@@ -140,16 +169,17 @@ aidlc-docs/changes/active/<change-id>/
   → aidlc-docs/changes/released/<YYYY-QN>/<change-id>/
 ```
 
-Update the intake note status (if it still exists in another tracking system):
+Update `README.md` (kept in released tier) to confirm the released location and date in the Timeline section:
 ```markdown
-- **Status**: COMPLETED
-- **Completed**: YYYY-MM-DD
+- **Released**: YYYY-MM-DD
 - **Released Location**: changes/released/<YYYY-QN>/<change-id>/
 ```
 
+If an external tracking system (Jira, Linear, etc.) exists, update the ticket status to COMPLETED and link to the released location.
+
 ---
 
-## Step 6: Report
+## Step 7: Report
 
 Present the release summary:
 - Change ID and title
@@ -157,7 +187,10 @@ Present the release summary:
 - Artifacts kept vs removed (count)
 - Released location path
 - Total time from intake to release
-- Next steps (suggest `/aidlc-deploy` if not yet deployed, `/aidlc-monitor` for monitoring setup)
+- Deploy type: Automated or Manual
+- Next steps:
+  - If automated deploy: suggest `/aidlc-monitor` for monitoring setup
+  - If `--manual`: no further deploy steps needed — note "deployed manually" in the report
 
 ---
 

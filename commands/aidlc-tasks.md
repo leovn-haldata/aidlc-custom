@@ -146,7 +146,7 @@ Before presenting to user, verify:
 ## Step 5: Present & Confirm
 
 1. Present the refined `tasks.md` to the user.
-2. **Wait for user approval** before proceeding.
+2. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user approval before proceeding.
 3. Once approved: "Tasks ready. Run `/aidlc-build <change-id>` to start TDD implementation."
 
 ---
