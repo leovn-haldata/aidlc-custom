@@ -13,15 +13,49 @@ Break down tasks for the following change:
 
 ## Step 1: Load Context
 
-1. Read artifacts from `aidlc-docs/changes/active/<change-id>/`:
-   - `tasks.md` (from `/aidlc-spec` -- the initial task outline)
-   - `design.md` (technical approach)
-   - `plan.md` (if exists, from `/aidlc-plan`)
-   - `test-plan.md` (if exists)
-   - `acceptance.md` (if exists)
-   - `data-model.md`, `contracts/` (if exists, full-spec)
+Load artifacts **incrementally** — only fetch what the current step needs, not everything upfront.
 
-2. Identify the spec mode from `intake-note.md`.
+1. **Load now** (minimal baseline):
+   - `intake-note.md` — spec mode and change-id
+   - `tasks.md` — initial task outline from `/aidlc-spec`
+   - `.aidlc/config.md` — multi-repo repo list and merge order (if present)
+
+2. **Load when entering Step 1.5** (cross-repo only):
+   - `contracts/` — check frozen status before task breakdown
+
+3. **Load when entering Step 2** (task refinement):
+   - `design.md` — technical approach
+   - `plan.md` — from `/aidlc-plan`, if exists
+   - `acceptance.md` — acceptance criteria mapping, if exists
+
+4. **Load on demand** (only when the current step explicitly requires it):
+   - `test-plan.md` — when generating or validating test tasks
+   - `data-model.md` — when tasks involve schema or data layer changes
+   - `affected-docs.md` — when generating task packets in Step 5.5
+
+> Never load all artifacts at once. Load each file the moment its step needs it.
+
+---
+
+## Step 1.5: Contract Guard (cross-repo only)
+
+> Skip this step if the change does not span multiple repos.
+
+Before generating task breakdown, verify contracts are frozen:
+
+1. Check if `contracts/` folder exists in `aidlc-docs/changes/active/<change-id>/`.
+   - If it does NOT exist: **STOP**. Inform the user:
+     > "Cross-repo changes require contracts to be defined before task breakdown.
+     > Go back and run `/aidlc-plan <change-id>` to define and freeze contracts first."
+
+2. Check each contract file for `**Status**: frozen`.
+   - If any contract is still `draft`: **STOP**. List the unfrozen contracts and inform:
+     > "The following contracts are not yet frozen: [list]. Return to `/aidlc-plan <change-id>` to freeze them before proceeding."
+
+3. If all contracts are frozen: proceed to Step 2. Note the frozen contracts that tasks must comply with:
+   - API contracts: `contracts/api-contracts.md`
+   - Event contracts: `contracts/event-contracts.md`
+   - Schema contracts: `contracts/schema-contracts.md` (if exists)
 
 ---
 
@@ -37,20 +71,20 @@ Update `tasks.md` with structured breakdown:
 # Tasks: <change-id>
 
 ## Phase 1: Foundation
-- [ ] Task 1.1: <description> @unassigned [UNASSIGNED]
+- [ ] Task 1.1: <description> @unassigned [UNASSIGNED] [REPO: backend]
   - Files: `path/to/file1`, `path/to/file2`
   - Test: `tests/test_file1.py`
   - Depends on: none
   - Est: 2h
 
-- [ ] Task 1.2: <description> @unassigned [UNASSIGNED] [P]
+- [ ] Task 1.2: <description> @unassigned [UNASSIGNED] [P] [REPO: backend]
   - Files: `path/to/file3`
   - Test: `tests/test_file3.py`
   - Depends on: none
   - Est: 1h
 
 ## Phase 2: Core Logic
-- [ ] Task 2.1: <description> @unassigned [UNASSIGNED]
+- [ ] Task 2.1: <description> @unassigned [UNASSIGNED] [REPO: frontend]
   - Files: `path/to/file4`
   - Test: `tests/test_file4.py`
   - Depends on: Task 1.1
@@ -78,40 +112,48 @@ Update `tasks.md` with full breakdown:
 - Sprint: <sprint-number>
 - Epic (if multi-sprint): <epic-name>
 - Teams: <team-a>, <team-b>
+- Repos: <repo-1>, <repo-2>  ← list all affected repos for cross-repo changes
 
-## Phase 1: Data Layer (Team A)
-- [ ] Task 1.1: Create DB migration @unassigned [UNASSIGNED]
+## Phase 1: Data Layer (Team A) [REPO: backend]
+- [ ] Task 1.1: Create DB migration @unassigned [UNASSIGNED] [REPO: backend]
   - Files: `migrations/...`
   - Depends on: none
   - Sprint: <sprint-number>
   - Est: 4h
 
-- [ ] Task 1.2: Implement data models @unassigned [UNASSIGNED] [P]
+- [ ] Task 1.2: Implement data models @unassigned [UNASSIGNED] [P] [REPO: backend]
   - Files: `backend/models/...`
   - Test: `tests/models/...`
   - Depends on: Task 1.1
   - Est: 3h
 
-## Phase 2: API Layer (Team A)
+## Phase 2: API Layer (Team A) [REPO: api-gateway]
 ...
 
-## Phase 3: Frontend (Team B)
+## Phase 3: Frontend (Team B) [REPO: frontend]
 ...
 
-## Cross-Team Integration
+## Cross-Repo Integration
 - [ ] Task X.1: End-to-end integration test @unassigned [UNASSIGNED]
   - Depends on: Phase 2 + Phase 3 complete
-  - Teams: A + B
+  - Repos: backend + api-gateway + frontend
   - Est: 4h
 
 ## Quality Checkpoints
-- [ ] All unit tests pass (Team A)
-- [ ] All unit tests pass (Team B)
-- [ ] Integration tests pass
-- [ ] Coverage >= 80%
-- [ ] Build passes
+- [ ] All unit tests pass (per repo)
+- [ ] Integration tests pass (cross-repo contracts)
+- [ ] Coverage >= 80% (per repo)
+- [ ] Build passes (per repo)
 - [ ] API contracts validated
 ```
+
+> **Multi-repo note**: When tasks span multiple repos, group them by `[REPO: <name>]`. Each repo will have its own branch (`feature/<change-id>`) and its own PR. The merge order is determined by dependency: lower-layer repos merge first (see `rules/03-team-workflow.md` Section 8 and `docs/multi-repo-workflow.md`).
+
+> **Contract compliance**: For cross-repo tasks, each task that touches a contract boundary must reference the frozen contract:
+> ```
+> - Contract: `contracts/api-contracts.md#POST /resource/action`
+> ```
+> This makes it explicit which contract the task is implementing/consuming, and enables contract drift detection during review.
 
 ---
 
@@ -147,7 +189,91 @@ Before presenting to user, verify:
 
 1. Present the refined `tasks.md` to the user.
 2. Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user approval before proceeding.
-3. Once approved: "Tasks ready. Run `/aidlc-build <change-id>` to start TDD implementation."
+3. Once approved, proceed to Step 5.5 (if multi-repo) or inform user: "Tasks ready. Run `/aidlc-build <change-id>` to start TDD implementation."
+
+---
+
+## Step 5.5: Generate Task Packets & Status (cross-repo only)
+
+> Skip this step if the change does not span multiple repos.
+
+After `tasks.md` is approved, generate per-repo task packets and a cross-repo status tracker.
+
+### Worker Repo Reading Protocol
+
+When the hub agent needs context from a worker repo to generate task packets, apply this reading strategy:
+
+1. **Read `docs/` first**: Only read `<repo-path>/docs/` — or the specific sub-paths already listed in `affected-docs.md`. Do not scan source directories (`app/`, `src/`, `lib/`, etc.).
+2. **Use `affected-docs.md` as the authority**: The "Read first" section per repo in `affected-docs.md` already enumerates the relevant doc paths. Load only those paths — do not explore beyond them.
+3. **Partition by repo section**: After reading docs, identify which doc sections are relevant to each repo's tasks. Record these as `## Affected local docs` in each task packet (file path + which section/heading is relevant). Do not copy doc content into the packet — reference only.
+4. **Source code as last resort**: If docs are insufficient to define a task (e.g., an existing function signature is essential), read the **minimum** source file needed. Add the gap to "Missing Docs Discovered" in `affected-docs.md`.
+
+Worker repos receive doc references in their task packet. Their local AI agent reads those docs from within the repo and determines exact file targets independently — the hub does not need to know the code-level details.
+
+> This keeps hub token usage proportional to documentation quality, not codebase size. Each worker repo's agent uses its own local context for implementation details.
+
+### 5.5a: Task Packets
+
+For each affected repo in `.aidlc/config.md`, create `aidlc-docs/changes/active/<change-id>/task-packets/<repo-name>.md` using `templates/task-packet.template.md` as base:
+
+- Extract only tasks tagged `[REPO: <repo-name>]` from `tasks.md`
+- List only frozen contract sections this repo implements or consumes
+- Extract only the "Read first" section for this repo from `affected-docs.md`
+- Each task packet must be **self-contained enough** for a member to understand their scope without reading the full `tasks.md`
+
+### 5.5b: Status Tracker
+
+Create `aidlc-docs/changes/active/<change-id>/status.md` using `templates/status.template.md` as base:
+- Add one row per affected repo with `not-started` status
+- Set overall status to `planning`
+- Set contract status to reflect the current freeze state
+
+### 5.5c: Push Artifacts to Worker Repos
+
+After task packets and status tracker are generated, push build-relevant artifacts **into each worker repo**.
+
+For each affected repo listed in `.aidlc/config.md`:
+
+1. **Resolve the repo path** from config (e.g., `../repo-name` relative to hub → absolute path).
+
+2. **Create the directory** in the worker repo:
+   ```
+   <repo-path>/.aidlc/changes/active/<change-id>/
+   ```
+
+3. **Write** the following files:
+
+   a. **`task-packet.md`** — copy from `aidlc-docs/changes/active/<change-id>/task-packets/<repo-name>.md`
+
+   b. **`contracts/`** — copy all frozen contract files from `aidlc-docs/changes/active/<change-id>/contracts/`
+
+   c. **`affected-docs.md`** — copy from `aidlc-docs/changes/active/<change-id>/affected-docs.md`
+
+   d. **`README.md`** — generated header:
+      ```markdown
+      # <change-id> — build artifacts
+
+      Generated from hub: <hub-path>
+      Generated on: <date>
+
+      Do NOT edit manually. Re-run `/aidlc-tasks <change-id>` in the hub to regenerate.
+
+      ## Files
+      - `task-packet.md` — tasks scoped to this repo
+      - `contracts/` — frozen API + schema contracts
+      - `affected-docs.md` — docs to read before building
+      ```
+
+4. **Report** which files were written to which repos.
+
+> These pushed files should be **committed** in the worker repo (not gitignored) so all team members who clone that repo have full context without needing hub access.
+
+### 5.5d: Handoff
+
+Inform the user:
+- "Artifacts pushed to each worker repo at `.aidlc/changes/active/<change-id>/`."
+- "Assign owners in `status.md`, then each repo member opens their repo and runs `/aidlc-build <change-id>`."
+- "The build agent reads `task-packet.md` locally — no hub access needed at build time."
 
 ---
 
@@ -159,3 +285,4 @@ Before presenting to user, verify:
 - `[P]` marker means the task can run in parallel with the preceding task(s).
 - `[DEP: Task X.Y]` marker means this task shares a logical interface with another task. Both devs must agree on the interface contract before coding. See `docs/team-conflict-playbook.md` Scenario 6.
 - Task IDs must be stable -- do not renumber after assignment.
+- For cross-repo: contracts MUST be frozen before task breakdown. Never generate tasks that contradict or extend a frozen contract without explicit human approval to revise it.

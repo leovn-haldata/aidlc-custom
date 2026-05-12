@@ -14,9 +14,24 @@ Validate and confirm the spec artifacts for the following change:
 
 ## Step 1: Load Artifacts
 
-1. Read all artifacts in `aidlc-docs/changes/active/<change-id>/`.
-2. Identify the spec mode from `intake-note.md` metadata.
-3. If artifacts are missing for the declared mode, list what is missing and ask the user whether to proceed or go back to `/aidlc-spec`.
+1. Read `intake-note.md` first — identify spec mode before loading anything else.
+2. Load only the artifacts required for the declared mode:
+
+   | Artifact | light | feature | full |
+   |----------|-------|---------|------|
+   | `proposal.md` | ✓ | ✓ | ✓ |
+   | `design.md` | ✓ | ✓ | ✓ |
+   | `tasks.md` | ✓ | ✓ | ✓ |
+   | `acceptance.md` | — | ✓ | ✓ |
+   | `test-plan.md` | — | ✓ | ✓ |
+   | `plan.md` | — | ✓ | ✓ |
+   | `contracts/` | — | — ¹ | ✓ |
+   | `data-model.md` | — | — | ✓ |
+   | `affected-docs.md` | — | ✓ (if cross-repo) | ✓ |
+
+3. If artifacts required for the declared mode are missing, list what is missing and ask the user whether to proceed or go back to `/aidlc-spec`.
+
+> ¹ **feature-spec cross-repo**: `contracts/` are created and frozen at `/aidlc-plan` (after Confirm), not at Spec stage. Their absence at Confirm time is expected — do not flag as missing.
 
 ---
 
@@ -51,6 +66,8 @@ Analyze the spec package and produce a confirmation report covering:
 ---
 
 ## Step 3: Present Confirmation Report
+
+Save the report to `aidlc-docs/changes/active/<change-id>/confirm-report.md` (use `templates/confirm-report.md` as base), then present it to the user.
 
 Format the report as:
 

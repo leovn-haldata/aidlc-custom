@@ -16,8 +16,9 @@ Receive the following requirement and process it through the intake workflow:
 ## Step 1: Analyze the Raw Input
 
 1. If `$ARGUMENTS` references a file (e.g. `@path/to/file.md`), read that file first before proceeding.
-2. Read the provided requirement (meeting notes, ticket, raw description, or conversation).
-3. Identify and extract:
+2. Check for `.aidlc/config.md` in the current working directory. If it exists and `Type: multi-repo` is set, read the repos table — this tells you which repos exist and their roles. Use this as ground truth when identifying which repos are impacted by the requirement.
+3. Read the provided requirement (meeting notes, ticket, raw description, or conversation).
+4. Identify and extract:
    - **Business goal**: What problem is being solved?
    - **Actors**: Who are the users / stakeholders?
    - **Scope**: What is included?
@@ -42,8 +43,14 @@ Evaluate the requirement against the decision matrix (see `rules/02-spec-modes.m
 | Duration | < 1h | < 3 days | 3-10 days | > 10 days |
 | API/DB change | No | No | Minor | Breaking / migration |
 | External integration | No | No | No | Yes |
+| Cross-repo change | No | Existing contract unchanged | New/minor contract | New/breaking contract |
 
 **If ANY criterion falls into a higher mode, recommend that higher mode.**
+
+**Cross-repo nuance**: Not all cross-repo changes require full-spec. The key factor is **contract impact**:
+- Cross-repo bug fix where **contract is unchanged** → `light-spec` is sufficient (intake → spec → build per repo → review → release)
+- Cross-repo feature with **new or minor contract additions** → `feature-spec` (needs contracts/, task-packets/, status.md)
+- Cross-repo feature with **breaking contract changes or new system integration** → `full-spec` (full lifecycle with formal contract freeze, integration tests, rollout plan)
 
 Present your recommendation, then use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to confirm. The confirmation should present:
 - Recommended mode and rationale

@@ -103,6 +103,7 @@ Which project features do you need?
   [ ] Production deploy    -- Deploy + hotfix + monitor commands
   [ ] Project transfer     -- Transfer/handover checklist
   [ ] Existing codebase    -- Brownfield analysis command
+  [ ] Multi-repo project   -- Multiple separate repos (backend / api / frontend)
 
 Install AI agent skills? (enhances agent behavior for specific workflows)
 
@@ -112,6 +113,27 @@ Install AI agent skills? (enhances agent behavior for specific workflows)
 ```
 
 Use the platform confirmation mechanism defined in `rules/09-platform-confirmation.md` to get user confirmation before proceeding.
+
+**If "Multi-repo project" is selected**, ask the following before proceeding:
+
+```
+Multi-repo configuration:
+
+  Hub location (where aidlc-docs will live):
+  > e.g. /var/www/html/my-project-aidlc  (absolute path)
+
+  Repos in this project (repeat for each):
+  | Name        | Relative path from hub | Role                  |
+  |-------------|------------------------|-----------------------|
+  | tv-backend  | ../tv-backend          | Batch + business logic|
+  | tv-api      | ../tv-api              | REST API layer        |
+  | tv-app      | ../tv-app              | Frontend              |
+
+  Default merge order (lower-layer first):
+  > e.g.  tv-backend → tv-api → tv-app
+```
+
+This information will be written to `.aidlc/config.md` in the hub and to `.aidlc/link.md` in each code repo (see Step 6).
 
 ---
 
@@ -255,6 +277,39 @@ Based on Step 2 selections:
 - `templates/archive-summary.md`
 - `templates/gitignore-changes` → `aidlc-docs/changes/.gitignore`
 - `templates/project-config.md` → `.aidlc/config.md`
+
+**If multi-repo is selected**, generate `.aidlc/config.md` with this content:
+
+```markdown
+# Project Config
+
+## Project
+- **Name**: <project-name>
+- **Type**: multi-repo
+- **Hub**: <absolute-path-to-hub>  ← the folder containing aidlc-docs/
+
+## Repos
+| Name | Path (from hub) | Role | Merge Order |
+|------|----------------|------|-------------|
+| <repo-1> | <relative-path> | <role> | 1 |
+| <repo-2> | <relative-path> | <role> | 2 |
+| <repo-3> | <relative-path> | <role> | 3 |
+
+## Merge Order
+<repo-1> → <repo-2> → <repo-3>
+```
+
+Then create `.aidlc/link.md` **inside each code repo** (at `<repo-path>/.aidlc/link.md`):
+
+```markdown
+# AIDLC Link
+
+- **Hub**: <absolute-path-to-hub>
+- **Repo Name**: <repo-name>
+- **Role**: <role>
+```
+
+This file is how any AI agent running inside that repo knows where to find the shared specs and which tasks belong to it.
 
 **Spec mode templates (based on selection):**
 - If light-spec: copy `templates/light-spec/` (3 files)

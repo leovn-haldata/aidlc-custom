@@ -41,7 +41,8 @@ Create a spec generation plan at `aidlc-docs/changes/active/<change-id>/spec-pla
 
 **design.md** -- OpenSpec style:
 - Technical approach (concise)
-- Impacted files (list with paths)
+- Repo Impact (list affected repos; omit if single-repo project):
+  - `<repo-name>`: impacted files with paths
 - Risks (1-3 items)
 - Backward compatibility notes
 
@@ -62,6 +63,8 @@ All of light-spec, PLUS:
 - Add architecture decisions (inline, no separate ADR)
 - Add component interaction description
 - Add data flow if applicable
+- Repo Impact (required if cross-repo):
+  - `<repo-name>`: impacted files with paths, PR branch name
 
 **tasks.md** -- Spec Kit style:
 - Dependency graph between tasks

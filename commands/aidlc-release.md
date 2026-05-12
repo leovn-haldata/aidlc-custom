@@ -33,16 +33,17 @@ Parse `$ARGUMENTS` to extract the change ID and detect `--manual` before proceed
 
 > **Skip this step entirely if `--manual` flag is set.**
 
-1. Read `aidlc-docs/changes/active/<change-id>/build-summary.md` for the PR link.
-2. Check if the PR is already merged (`gh pr view <number> --json state`):
-   - **Already merged**: skip to step 4.
-   - **Open**: proceed to merge.
-3. If PR is open and review is PASS:
-   - If `/aidlc-modify` was run after the PR was created, verify the branch has been pushed with the latest changes (`git push`) before merging.
-   - Merge the PR to `develop` branch (`gh pr merge <number> --squash` or as configured).
-   - If merge conflicts exist, inform user and STOP.
+1. Read `aidlc-docs/changes/active/<change-id>/build-summary.md` for the PR link(s).
+2. **Determine merge order**: For multi-repo changes, read the `Repo Boundaries` section in `plan.md` to establish the correct merge order (lower-layer repos first: e.g., backend → api-gateway → frontend). For single-repo, proceed directly.
+3. For each PR (in merge order):
+   a. Check if already merged (`gh pr view <number> --json state`):
+      - **Already merged**: skip to next PR.
+      - **Open**: proceed to merge.
+   b. If `/aidlc-modify` was run after the PR was created, verify the branch has been pushed (`git push`) before merging.
+   c. Merge to `develop` (`gh pr merge <number> --squash` or as configured).
+   d. If merge conflicts exist, inform user and STOP before merging remaining repos.
+   e. **Verify merge succeeded and CI passes before merging the next repo in the chain.**
 4. If no PR link found, ask user: "Was the code merged manually? If yes, proceed. If not, run `/aidlc-build` first."
-5. Verify merge succeeded before proceeding.
 
 ---
 

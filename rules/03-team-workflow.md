@@ -160,3 +160,29 @@ For team projects, verify daily:
 | Sprint scope violated | STOP work, re-plan via `/aidlc-modify` |
 | Disagreement on technical approach | Create an ADR, discuss, Tech Lead decides |
 | Blocked by another team | Escalate to PM, add to sprint impediments |
+
+---
+
+## 8. Multi-Repo Rules
+
+For projects with multiple separate repositories:
+
+### Orchestration Principle
+- Use a dedicated hub repo for all spec artifacts and task coordination
+- Code repos contain only code and local docs, not cross-repo specs
+- All repos link back to the hub via `.aidlc/link.md`
+
+### Branch Consistency
+- Use identical branch names across all affected repos: `feature/<change-id>`
+- Makes cross-referencing and tracking easier
+
+### Merge Order Enforcement  
+- **Always merge lower-layer repos first**: backend → api → frontend
+- Verify CI passes after each repo merge before continuing
+- Any merge failure blocks the entire sequence until resolved
+
+### Contract Freeze Rule
+- Define all cross-repo contracts **before** task breakdown begins
+- Freeze contracts using `/aidlc-plan` Step 4 process
+- Any contract change after freeze requires re-confirmation from all affected teams
+- See `docs/multi-repo-workflow.md` for implementation details
